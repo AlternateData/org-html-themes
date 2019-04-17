@@ -43,21 +43,6 @@ $(function() {
     $('<div id="minitoc" class="dontprint"></div>').prependTo('body');
 });
 
-// generate contents of minitoc
-function generateMiniToc(divId) {
-    $('#minitoc').empty().append('<h2>In this section</h2>');
-    $('#' + divId).find('h3').each(function(i) {
-        let pos = $(this).text().search(" ");
-        let text = $(this).text().substring(0, pos);
-        $("#minitoc").append("<a href='#" + $(this).attr("id") + "'>"
-                             + text + "</a>");
-    });
-    // Ensure that the target is expanded (hideShow)
-    $('#minitoc a[href^="#"]').click(function() {
-        var href = $(this).attr('href');
-        hsExpandAnchor(href);
-    });
-}
 
 // display tabs
 function tabifySections() {
@@ -118,8 +103,6 @@ function selectTabAndScroll(href) {
     // Activate target tab
     $('#content').tabs('option', 'active', targetTabIndex);
 
-    // Rebuild minitoc
-    generateMiniToc(targetTabId);
 
     // Set the location hash
     // document.location.hash = href;
@@ -148,13 +131,6 @@ $(document).ready(function() {
     // Set default animation
     $('#content').tabs('option', 'show', true);
 
-    // Rebuild minitoc when a tab is activated
-    $('#content').tabs({
-        activate: function(event, ui) {
-            var divId = ui.newTab.attr('aria-controls');
-            generateMiniToc(divId);
-        }
-    });
 
     // Required to get the link of the tab in URL
     $('#content ul').localScroll({
@@ -167,11 +143,6 @@ $(document).ready(function() {
     if ($('#content') && document.location.hash) {
         hsExpandAnchor(document.location.hash);
         selectTabAndScroll(document.location.hash);
-    }
-    // If no hash, build the minitoc anyway for selected tab
-    else {
-        var divId = $('#content div[aria-expanded=true]').attr('id');
-        generateMiniToc(divId);
     }
 
     // Handle click on internal links
@@ -284,151 +255,7 @@ $(function() {
     });
 });
 
-function togglePanel(e) {
-    e.preventDefault();
 
-    $("#left-panel-contents").toggleClass('active').toggle(200);
-    $("#right-panel-contents").toggleClass('active').toggle(200);
-
-    var slidePos =
-        $("#left-panel-button").css("left") == "-23px"? '182px': '-23px';
-
-    $("#left-panel-button").
-        animate({"left": slidePos, "opacity": 0.9}, {duration: "200" });
-
-    // if ($("#left-panel-contents").hasClass('active')) {
-    //     hsHideTodoKeyword('done');
-    // } else {
-    //     hsShowTodoKeyword('done');
-    // }
-
-    // return false;
-}
-
-$(function() {
-    $('<div id="left-panel-wrapper" class="dontprint"><div id="left-panel-contents" style="opacity: 0.9"></div><div id="left-panel-button" class="dontprint"><a href="#">Dashboard</a></div></div>')
-        .appendTo('body');
-
-    $('<div id="right-panel-wrapper" class="dontprint"><div id="right-panel-contents" style="opacity: 0.9"></div></div>')
-        .appendTo('body');
-
-    $('#left-panel-button').click(togglePanel);
-});
-
-$(function() {
-    var ul = $('<ul id="listOfTodo"></ul>').appendTo('#left-panel-contents');
-    var countOfTodo = {}, listOfTodo = [], totalOfTodo = 0;
-
-    // assign the counts (avoid double-counting elements from the ToC)
-    $('span.todo').not($('#table-of-contents span.todo')).each(function() {
-        var $thisTodo = $(this).text().trim();
-
-        if ($.inArray($thisTodo, listOfTodo) == -1) {
-            countOfTodo[$thisTodo] = 1;
-            listOfTodo.push($thisTodo);
-        }
-        else
-            countOfTodo[$thisTodo] += 1;
-        totalOfTodo += 1;
-    });
-
-    function scoreTodo(t) {
-        switch (t) {
-            case 'NEW': return 1;
-            case 'TODO': return 2;
-            case 'STRT': return 3;
-            case 'WAIT': return 4;
-            case 'DLGT': return 5;
-            case 'SDAY': return 6;
-            case 'DFRD': return 7;
-            case 'DONE': return 8;
-            case 'CANX': return 9;
-            default: return 0;
-            }
-    }
-
-    function compareTodo(a, b) {
-        if (scoreTodo(a) < scoreTodo(b)) return -1;
-        if (scoreTodo(a) > scoreTodo(b)) return 1;
-        return 0;
-    }
-
-    listOfTodo.sort(compareTodo);
-
-    // display
-    for (i = 0; i < listOfTodo.length; i++) {
-        var $thisTodo = listOfTodo[i];
-        $(ul).append('<li><span class="todo ' + $thisTodo + '">'+ $thisTodo + '</span>'
-                     + ' <small>(' + countOfTodo[$thisTodo] + ')</small></li>');
-    }
-
-    $('#listOfTodo')
-        .before('<b>Next Actions</b> <small>(' + totalOfTodo + ')</small>:<br>');
-});
-
-$(function() {
-    var ul = $('<ul id="listOfDone"></ul>').appendTo('#left-panel-contents');
-    var countOfDone = {}, listOfDone = [], totalOfDone = 0;
-
-    // assign the counts (avoid double-counting elements from the ToC)
-    $('span.done').not($('#table-of-contents span.done')).each(function() {
-        var $thisDone = $(this).text().trim();
-
-        if ($.inArray($thisDone, listOfDone) == -1) {
-            countOfDone[$thisDone] = 1;
-            listOfDone.push($thisDone);
-        }
-        else
-            countOfDone[$thisDone] += 1;
-        totalOfDone += 1;
-    });
-
-    // display
-    for (i = 0; i < listOfDone.length; i++) {
-        var $thisDone = listOfDone[i];
-        $(ul).append('<li><span class="done ' + $thisDone + '">'+ $thisDone + '</span>'
-                     + ' <small>(' + countOfDone[$thisDone] + ')</small></li>');
-    }
-
-    $('#listOfDone')
-        .before('<b>Done Actions</b> <small>(' + totalOfDone + '):</small><br>');
-});
-
-$(function() {
-    var ul = $('<ul id="listOfTags"></ul>').appendTo('#right-panel-contents');
-    var countOfTags = {}, listOfTags = [], totalOfTags = 0;
-
-    // assign the counts (avoid double-counting elements from the ToC)
-    $('span.tag').not($('#table-of-contents span.tag')).each(function() {
-        var $thisTagGroup = $(this).text().trim().split(/\s/);
-                                        // \s matches spaces, tabs, new lines, etc.
-
-        for (tag in $thisTagGroup) {
-            if ($.inArray($thisTagGroup[tag], listOfTags) == -1) {
-                countOfTags[$thisTagGroup[tag]] = 1;
-                listOfTags.push($thisTagGroup[tag]);
-            }
-            else
-                countOfTags[$thisTagGroup[tag]] += 1;
-            totalOfTags += 1;
-        }
-    });
-
-    listOfTags.sort();
-
-    // display
-    for (i = 0; i < listOfTags.length; i++) {
-        var $thisTag = listOfTags[i];
-        // $(ul).append('<li><span class="tag ' + $thisTag + '">'+
-        //                   $thisTag + '</span> <small>(' + countOfTags[$thisTag] + ')</small></li>');
-        $(ul).append('<li><span class="tag"><span class="' + $thisTag + '">' + $thisTag
-                     + '</span></span>'
-                     + ' <small>(' + countOfTags[$thisTag] + ')</small></li>');
-    }
-
-    $('#listOfTags')
-        .before('<b>Contexts</b> <small>(' + totalOfTags + '):</small><br>');
-});
 
 $(function() {
     $('.done').parent(':header').parent().find(':header').addClass('DONEheader');
@@ -488,10 +315,6 @@ function orgDefkey(e) {
     var keycode = (e.keyCode) ? e.keyCode : e.which;
     var actualkey = String.fromCharCode(keycode);
     switch (actualkey) {
-        case "?": // help (dashboard)
-        case "h":
-            togglePanel(e);
-            break;
         case "n": // next
             clickNextTab();
             break;
