@@ -290,18 +290,6 @@ function hsShowTodoKeyword(kw) {
     // XXX Show if parent is not collapsed!
 }
 
-function hsAddReviewPanels() {
-    $('.outline-2').each(function(e) {
-        var nbItems = $(this).find('span.todo').length;
-        if (nbItems > 0) {
-            $(this).prepend('<div class="hsReviewPanel hsUnselectable" onclick="hsReviewTaskNext()">'
-                            + 'Press r or click here<br>'
-                            + 'to review ' + nbItems + ' tasks<br>'
-                            + '(out of ' +  nbReviewTotalTasks + ' tasks)</div>');
-        }
-    });
-}
-
 function hsAddReviewingPanels() {
     $('.outline-2').each(function(e) {
         var nbItems = $(this).find('span.todo').length;
@@ -328,5 +316,4 @@ var nbReviewTotalTasks;
 
 $(document).ready(function() {
     nbReviewTotalTasks = $('.outline-2 span.todo').length;
-    hsAddReviewPanels();
 });
